@@ -1,0 +1,30 @@
+{
+  "name": "chatsh.it",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "GOPATH=$HOME/go/ GOROOT=`go env GOROOT` GO111MODULE=on webpack-dev-server --mode development",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/threesquared/chatsh.it"
+  },
+  "homepage": "https://chatsh.it/",
+  "author": "Ben Speakman",
+  "license": "MIT",
+  "devDependencies": {
+    "@fiedka/golang-wasm-async-loader": "^4.0.0",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.2",
+    "webpack": "^5.58.2",
+    "webpack-cli": "^4.9.0",
+    "webpack-dev-server": "^4.3.1"
+  },
+  "dependencies": {
+    "@types/simple-peer": "^9.6.0",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "simple-peer": "^9.6.2"
+  }
+}
