@@ -4,18 +4,18 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Chatsh.it | Peer to peer and end to end encrypted web chat</title>
-    <meta name="description" content="hat securely and directly">
+    <meta name="description" content="Chat securely and directly with WebRTC and WebAssembly">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#000000">
     <meta property="og:title" content="Chatsh.it | Peer to peer and end to end encrypted web chat"/>
-    <meta property="og:description" content="Chat securely and directly"/>
+    <meta property="og:description" content="Chat securely and directly with WebRTC and WebAssembly"/>
     <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://chatsh.it/"/>n
+    <meta property="og:url" content="https://chatsh.it/"/>
     <meta property="og:image" content=""/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="Chatsh.it | Peer to peer and end to end encrypted web chat"/>
-    <meta name="twitter:description" content="hat securely and directly"/>
-    <meta name="twitter:image" content="g"/>
+    <meta name="twitter:description" content="Chat securely and directly with WebRTC and WebAssembly"/>
+    <meta name="twitter:image" content=""/>
     <meta name="twitter:url" content="https://chatsh.it/"/>
     <link rel="apple-touch-icon-precomposed" sizes="57x57" href="apple-touch-icon-57x57.png" />
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="apple-touch-icon-114x114.png" />
@@ -31,11 +31,27 @@
     <meta name="msapplication-TileImage" content="mstile-144x144.png" />
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
     <link rel="manifest" href="">
+
+    <style>
+      #outgoing {
+        width: 600px;
+        word-wrap: break-word;
+        white-space: normal;
+      }
+    </style>
   </head>
   <body>
     <noscript>
       You need to enable JavaScript to run this app.
     </noscript>
+
+     <form>
+      <textarea id="incoming"></textarea>
+      <button type="submit">Go</button>
+    </form>
+
+    <pre id="outgoing"></pre>
+
     <script src="bundle.js"></script>
   </body>
 </html>
