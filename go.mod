@@ -1,4 +1,4 @@
-module chatsh.it
+module chatshit
 
 go 1.17
 
