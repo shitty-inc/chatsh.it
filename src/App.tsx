@@ -59,17 +59,29 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <form onSubmit={ handleSubmit }>
-        <textarea
-          id="incoming"
-          value = {incomingText}
-          onChange={e => setIncomingtext(e.target.value)}>
-        </textarea>
-        <button type="submit">Go</button>
-      </form>
+    <div className="container">
+      <div className="body">
+        <div className="App">
+          <div className="row logo">
+            <div className="col-md-12 text-center">
+              <h1 className="h1"><a href="/">chat<span>sh.it</span></a></h1>
+            </div>
+          </div>
+          <div className="text-center col-md-12">
+            <p></p>
+            <form onSubmit={ handleSubmit }>
+              <textarea
+                id="incoming"
+                value = {incomingText}
+                onChange={e => setIncomingtext(e.target.value)}>
+              </textarea>
+              <button type="submit" className="btn btn-default">Go</button>
+            </form>
+          </div>
 
-      <pre id="outgoing">{ outgoingText }</pre>
+          <pre id="outgoing">{ outgoingText }</pre>
+        </div>
+      </div>
     </div>
   );
 }
