@@ -70,16 +70,23 @@ function App() {
           <div className="text-center col-md-12">
             <p></p>
             <form onSubmit={ handleSubmit }>
-              <textarea
-                id="incoming"
-                value = {incomingText}
-                onChange={e => setIncomingtext(e.target.value)}>
-              </textarea>
-              <button type="submit" className="btn btn-default">Go</button>
+              <div className="form-group">
+                <textarea
+                  className="incoming"
+                  value = {incomingText}
+                  onChange={e => setIncomingtext(e.target.value)}>
+                </textarea>
+              </div>
+              <button type="submit" className="btn btn-primary">Send</button>
             </form>
+            <div className="outgoing">
+              <div className="card">
+                <div className="card-body">
+                { outgoingText }
+                </div>
+              </div>
+            </div>
           </div>
-
-          <pre id="outgoing">{ outgoingText }</pre>
         </div>
       </div>
     </div>

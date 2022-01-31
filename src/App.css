@@ -1,5 +1,11 @@
-#outgoing {
+.outgoing {
   width: 600px;
-  word-wrap: break-word;
-  white-space: normal;
+  height: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.incoming {
+  width: 600px;
+
 }
