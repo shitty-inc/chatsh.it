@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/aws/aws-lambda-go v1.28.0
+	github.com/pulumi/pulumi-aws-apigateway/sdk v0.0.5
 	github.com/pulumi/pulumi-aws/sdk/v4 v4.30.0
 	github.com/pulumi/pulumi/sdk/v3 v3.19.0
 )
@@ -30,9 +31,6 @@ require (
 	github.com/opentracing/basictracer-go v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pulumi/pulumi-aws-apigateway/sdk v0.0.5 // indirect
-	github.com/pulumi/pulumi-aws/sdk v1.31.0 // indirect
-	github.com/pulumi/pulumi/sdk v1.13.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect

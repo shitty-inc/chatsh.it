@@ -1,11 +1,11 @@
 .outgoing {
   width: 600px;
-  height: 300px;
+  margin-top: 30px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .incoming {
   width: 600px;
-
+  height: 100px;
 }

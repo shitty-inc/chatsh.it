@@ -11,7 +11,12 @@ func main() {
 			return err
 		}
 
-		gateway, err := createApiGateway(ctx, onConnect, onDisconnect, sendMessage)
+		cert, err := createCertificate(ctx)
+		if err != nil {
+			return err
+		}
+
+		gateway, err := createApiGateway(ctx, onConnect, onDisconnect, sendMessage, cert)
 		if err != nil {
 			return err
 		}
