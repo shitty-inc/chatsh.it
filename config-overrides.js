@@ -19,7 +19,10 @@ module.exports = function override(config) {
       return {
         ...rule,
         oneOf: [
-
+          {
+            test: /\.go/,
+            use: ['@fiedka/golang-wasm-async-loader']
+          },
           ...rule.oneOf
         ]
       };
