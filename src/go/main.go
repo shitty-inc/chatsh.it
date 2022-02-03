@@ -1,4 +1,4 @@
-package chatshit
+package main
 
 import (
 	"crypto/rand"
