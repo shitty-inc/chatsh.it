@@ -7,8 +7,6 @@ import (
 )
 
 func createCertificate(ctx *pulumi.Context) (*acm.CertificateValidation, error) {
-	domain := pulumi.String("api.acmecorp.example")
-
 	awsUsEast1, err := aws.NewProvider(ctx, "aws-provider-us-east-1", &aws.ProviderArgs{Region: pulumi.String("us-east-1")})
 	if err != nil {
 		return nil, err
@@ -17,7 +15,7 @@ func createCertificate(ctx *pulumi.Context) (*acm.CertificateValidation, error) 
 	sslCertificate, err := acm.NewCertificate(ctx,
 		"ssl-cert",
 		&acm.CertificateArgs{
-			DomainName:       domain,
+			DomainName:       pulumi.String("chatsh.it"),
 			ValidationMethod: pulumi.String("DNS"),
 		},
 		pulumi.Provider(awsUsEast1),
