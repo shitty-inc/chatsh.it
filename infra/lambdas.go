@@ -24,7 +24,7 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 		return nil, nil, nil, err
 	}
 
-	logPolicy, err := iam.NewRolePolicy(ctx, "lambda-log-policy", &iam.RolePolicyArgs{
+	functionPolicy, err := iam.NewRolePolicy(ctx, "lambda-policy", &iam.RolePolicyArgs{
 		Role: role.Name,
 		Policy: pulumi.String(`{
 			"Version": "2012-10-17",
@@ -36,6 +36,14 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 					"logs:PutLogEvents"
 				],
 				"Resource": "arn:aws:logs:*:*:*"
+			},
+			{
+				"Effect": "Allow",
+				"Action": [
+					"dynamodb:PutItem",
+					"dynamodb:DeleteItem"
+				],
+				"Resource": "arn:aws:dynamodb:eu-west-1:068310699258:table/chatshit-*"
 			}]
 		}`),
 	})
@@ -50,7 +58,7 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 		}),
 		Handler: pulumi.String("handler"),
 		Role:    role.Arn,
-	}, pulumi.DependsOn([]pulumi.Resource{logPolicy}))
+	}, pulumi.DependsOn([]pulumi.Resource{functionPolicy}))
 
 	if err != nil {
 		return nil, nil, nil, err
@@ -63,7 +71,7 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 		}),
 		Handler: pulumi.String("handler"),
 		Role:    role.Arn,
-	}, pulumi.DependsOn([]pulumi.Resource{logPolicy}))
+	}, pulumi.DependsOn([]pulumi.Resource{functionPolicy}))
 
 	if err != nil {
 		return nil, nil, nil, err
@@ -76,7 +84,7 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 		}),
 		Handler: pulumi.String("handler"),
 		Role:    role.Arn,
-	}, pulumi.DependsOn([]pulumi.Resource{logPolicy}))
+	}, pulumi.DependsOn([]pulumi.Resource{functionPolicy}))
 
 	if err != nil {
 		return nil, nil, nil, err

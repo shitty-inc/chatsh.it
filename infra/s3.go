@@ -34,9 +34,9 @@ func createWebsiteBucket(ctx *pulumi.Context) (error) {
 			}
 
 			_, err = s3.NewBucketObject(ctx, rel, &s3.BucketObjectArgs{
-				Bucket:      siteBucket.ID(),                                     // reference to the s3.Bucket object
-				Source:      pulumi.NewFileAsset(name),                           // use FileAsset to point to a file
-				ContentType: pulumi.String(mime.TypeByExtension(path.Ext(name))), // set the MIME type of the file
+				Bucket:      siteBucket.ID(),
+				Source:      pulumi.NewFileAsset(name),
+				ContentType: pulumi.String(mime.TypeByExtension(path.Ext(name))),
 			})
 			if err != nil {
 				return err

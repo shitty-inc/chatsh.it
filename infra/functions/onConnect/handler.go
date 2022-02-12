@@ -32,7 +32,7 @@ func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayP
 
 	input := &dynamodb.PutItemInput{
     Item:      av,
-    TableName: aws.String("chatshit"),
+    TableName: aws.String("chatshit-9388b75"),
 	}
 
 	_, err = svc.PutItem(input)

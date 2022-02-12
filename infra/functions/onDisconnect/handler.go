@@ -21,7 +21,7 @@ type Item struct {
 
 func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	input := &dynamodb.DeleteItemInput{
-    TableName: aws.String("chatshit"),
+    TableName: aws.String("chatshit-9388b75"),
 		Key: map[string]*dynamodb.AttributeValue {
 			"ConnectionId": {
 				S: aws.String(request.RequestContext.ConnectionID),
@@ -31,7 +31,7 @@ func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayP
 
 	_, err := svc.DeleteItem(input)
 	if err != nil {
-			log.Fatalf("Error calling DeleteItem: %s", err)
+		log.Fatalf("Error calling DeleteItem: %s", err)
 	}
 
 	return events.APIGatewayProxyResponse{

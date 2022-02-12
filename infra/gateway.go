@@ -38,6 +38,71 @@ func createApiGateway(ctx *pulumi.Context, onConnect *lambda.Function, onDisconn
 		return nil, err
 	}
 
+	_, err = lambda.NewPermission(ctx, "connect-permission", &lambda.PermissionArgs{
+		Action:    pulumi.String("lambda:InvokeFunction"),
+		Function:  onConnect.Name,
+		Principal: pulumi.String("apigateway.amazonaws.com"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = apigatewayv2.NewIntegration(ctx, "disconnect-integration", &apigatewayv2.IntegrationArgs{
+		ApiId:                   api.ID(),
+		IntegrationType:         pulumi.String("AWS"),
+		ContentHandlingStrategy: pulumi.String("CONVERT_TO_TEXT"),
+		IntegrationMethod:       pulumi.String("POST"),
+		IntegrationUri:          onDisconnect.InvokeArn,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = apigatewayv2.NewRoute(ctx, "disconnect-route", &apigatewayv2.RouteArgs{
+		ApiId:         api.ID(),
+		RouteKey:      pulumi.String(fmt.Sprintf("%v%v", "$", "disconnect")),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = lambda.NewPermission(ctx, "disconnect-permission", &lambda.PermissionArgs{
+		Action:    pulumi.String("lambda:InvokeFunction"),
+		Function:  onDisconnect.Name,
+		Principal: pulumi.String("apigateway.amazonaws.com"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = apigatewayv2.NewIntegration(ctx, "sendmessage-integration", &apigatewayv2.IntegrationArgs{
+		ApiId:                   api.ID(),
+		IntegrationType:         pulumi.String("AWS"),
+		ContentHandlingStrategy: pulumi.String("CONVERT_TO_TEXT"),
+		IntegrationMethod:       pulumi.String("POST"),
+		IntegrationUri:          sendMessage.InvokeArn,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = apigatewayv2.NewRoute(ctx, "sendmessage-route", &apigatewayv2.RouteArgs{
+		ApiId:         api.ID(),
+		RouteKey:      pulumi.String("sendmessage"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = lambda.NewPermission(ctx, "sendmessage-permission", &lambda.PermissionArgs{
+		Action:    pulumi.String("lambda:InvokeFunction"),
+		Function:  sendMessage.Name,
+		Principal: pulumi.String("apigateway.amazonaws.com"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	domainName, err := apigatewayv2.NewDomainName(ctx, "api-domain", &apigatewayv2.DomainNameArgs{
 		DomainName: pulumi.String("api.chatsh.it"),
 		DomainNameConfiguration: &apigatewayv2.DomainNameDomainNameConfigurationArgs{
