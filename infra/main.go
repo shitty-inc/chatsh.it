@@ -21,7 +21,17 @@ func main() {
 			return err
 		}
 
-		ctx.Export("url", gateway.Url)
+		err = createDynamoDBTable(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = createWebsiteBucket(ctx)
+		if err != nil {
+			return err
+		}
+
+		ctx.Export("url", gateway)
 
 		return nil
 	})
