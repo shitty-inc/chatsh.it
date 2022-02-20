@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	svc dynamodbiface.DynamoDBAPI
+	dynamo dynamodbiface.DynamoDBAPI
 )
 
 type Item struct {
@@ -29,7 +29,7 @@ func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayP
 		},
 	}
 
-	_, err := svc.DeleteItem(input)
+	_, err := dynamo.DeleteItem(input)
 	if err != nil {
 		log.Fatalf("Error calling DeleteItem: %s", err)
 	}
@@ -41,11 +41,9 @@ func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayP
 }
 
 func init() {
-	session := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	session := session.Must(session.NewSession())
 
-	svc = dynamodb.New(session)
+	dynamo = dynamodb.New(session)
 }
 
 func main() {

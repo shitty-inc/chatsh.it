@@ -1,92 +1,198 @@
 import React, { useEffect, useState } from 'react';
+import { Websocket, WebsocketBuilder, WebsocketEvents } from 'websocket-ts';
 import Peer from 'simple-peer';
 import wasm from './go/main.go'
+import Link from './Link';
+import Messages from './Messages';
+import Input from './Input';
 import './App.css';
 
+let theirID: string;
 let secret: string;
-let publicKey: string;
+let peer: Peer.Instance;
+let initiator = !!!window.location.hash
+let websocket: Websocket;
 
-const peer = new Peer({
-  initiator: !!!window.location.hash,
-  trickle: false
-});
+export interface Message {
+  direction: string;
+  timestamp: string;
+  text: string;
+}
 
-async function encrypt(signalData: string) {
-  const uploadKey = await wasm.GenerateRandomString(24);
-  const buffer = new Buffer(signalData);
+async function encrypt(data: string): Promise<string> {
+  const buffer = new Buffer(data);
+  const encryptedData = await wasm.EncryptFile('signal', buffer, buffer.length, secret);
 
-  publicKey = await wasm.GenerateKey();
+  return encryptedData;
+}
 
-  const encryptedSignalData = await wasm.EncryptFile('signal', buffer, buffer.length, uploadKey);
-  //const response = await wasm.UploadFile(data);
+async function createPeer() {
+  peer = new Peer({
+    initiator: initiator,
+    trickle: false
+  });
 
-  console.log('uploadKey', uploadKey)
-  console.log('uploadData', encryptedSignalData);
-  console.log('publicKey', publicKey)
+  peer.on('error', err => console.log('peer error', err))
+
+  peer.on('signal', data => {
+    encrypt(JSON.stringify(data));
+    //setMessages((prevMessages: string[]) => [...prevMessages, "Got signal data"])
+  })
+
+  peer.on('connect', async () => {
+    console.log('WebRTC connected');
+  })
+
+  peer.on('data', async (data) => {
+    const string = new TextDecoder("utf-8").decode(data);
+
+    console.log('WebRTC data', string);
+  })
 }
 
 function App() {
-  const [incomingText, setIncomingtext] = useState("")
-  const [outgoingText, setOutgoingtext] = useState("")
+  const [myID, setMyID] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [state, setState] = useState("pending");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [outgoingText, setOutgoingtext] = useState("");
+
+  function setMessage(message: Message) {
+    setMessages((prevMessages: Message[]) => [...prevMessages, message])
+  }
+
+  async function generateSecret(key: string) {
+    secret = await wasm.ComputeSecret(key);
+    console.log('Secret generated', secret)
+  }
 
   useEffect(() => {
-    peer.on('error', err => console.log('error', err))
+    const processMessage = (i: Websocket, ev: any) => {
+      const message = JSON.parse(ev.data);
 
-    peer.on('signal', data => {
-      encrypt(JSON.stringify(data));
-      setOutgoingtext(JSON.stringify(data));
-    })
+      switch (message.action) {
+        case 'registered':
+          console.log('Registered with signaling server', message)
+          setState('registered');
+          if(!initiator) {
+            theirID = window.location.hash.substring(2);
+            console.log(`Sending my publicKey to ${theirID}`);
+            i.send(JSON.stringify({
+              action: 'exchange',
+              payload: {
+                myID,
+                theirID,
+                publicKey
+              }
+            }));
+          }
+          break;
+        case 'exchange':
+          console.log('Received key', message)
 
-    peer.on('connect', async () => {
-      peer.send(`keyData:${publicKey}`);
-    })
+          if(!theirID) {
+            theirID = message.payload.id;
+            console.log(`Sending my publicKey back to ${theirID}`);
+            i.send(JSON.stringify({
+              action: 'exchange',
+              payload: {
+                myID,
+                theirID,
+                publicKey
+              }
+            }));
+          }
 
-    peer.on('data', async (data) => {
-      const string = new TextDecoder("utf-8").decode(data);
+          generateSecret(message.payload.publicKey);
+          setState('exchanged');
+          break;
+        case 'switch':
+          console.log('Attempting to switch to WebRTC')
+          peer.signal(message.payload);
+          break;
+        case 'message':
+          setMessage({
+            direction: 'in',
+            timestamp: new Date().toISOString(),
+            text: message.payload.message
+          })
+          break;
+        default:
+          console.log('Unknown message action', message)
+      }
+    };
 
-      if (string.startsWith("keyData:")) {
-        secret = await wasm.ComputeSecret(string.replace("keyData:", ""));
-        console.log('secret', secret)
+    if(myID !== "" && publicKey !== "") {
+      websocket.addEventListener(WebsocketEvents.message, processMessage);
+    }
+  }, [myID, publicKey]);
+
+  useEffect(() => {
+    async function init() {
+      const id = await wasm.GenerateRandomString(24)
+      setMyID(id);
+
+      const key = await wasm.GenerateKey();
+      setPublicKey(key);
+
+      console.log('Got ID', id);
+
+      websocket = new WebsocketBuilder('wss://api.chatsh.it')
+        .onError((i, ev) => console.log('Websocket error', ev))
+        .build();
+
+      const register = () => {
+        console.log('Registering with signaling server')
+
+        websocket.send(JSON.stringify({
+          action: 'register',
+          payload: {
+            id,
+          }
+        }));
       }
 
-      console.log('data', string);
-    })
+      websocket.addEventListener(WebsocketEvents.open, register);
+      websocket.addEventListener(WebsocketEvents.retry, register);
+    }
+
+    init();
   }, []);
 
   const handleSubmit = (event: React.SyntheticEvent) => {
     event.preventDefault();
-    peer.signal(JSON.parse(incomingText))
+
+    if(theirID) {
+      websocket.send(JSON.stringify({
+        action: 'send',
+        payload: {
+          id: theirID,
+          message: outgoingText
+        }
+      }));
+
+      setMessage({
+        direction: 'out',
+        timestamp: new Date().toISOString(),
+        text: outgoingText
+      });
+    } else {
+      console.log('Connection not ready');
+    }
   }
 
   return (
-    <div className="container">
-      <div className="body">
-        <div className="App">
+    <div className="body">
+      <div className="App">
+        <div className="container">
           <div className="row logo">
             <div className="col-md-12 text-center">
               <h1 className="h1"><a href="/">chat<span>sh.it</span></a></h1>
             </div>
           </div>
-          <div className="text-center col-md-12">
-            <p></p>
-            <form onSubmit={ handleSubmit }>
-              <div className="form-group">
-                <textarea
-                  className="incoming"
-                  value = {incomingText}
-                  onChange={e => setIncomingtext(e.target.value)}>
-                </textarea>
-              </div>
-              <button type="submit" className="btn btn-primary">Send</button>
-            </form>
-            <div className="outgoing">
-              <div className="card">
-                <div className="card-body">
-                { outgoingText }
-                </div>
-              </div>
-            </div>
-          </div>
+          <Link id={ myID } display={ state === "registered" } />
+          <Messages messages={ messages } />
+          <Input outgoingText={ outgoingText } setOutgoingtext={ setOutgoingtext } handleSubmit={ handleSubmit } display={ state === "exchanged" } />
         </div>
       </div>
     </div>

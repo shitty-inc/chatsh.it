@@ -9,12 +9,18 @@ func createDynamoDBTable(ctx *pulumi.Context) (error) {
 	_, err := dynamodb.NewTable(ctx, "chatshit", &dynamodb.TableArgs{
 		Attributes: dynamodb.TableAttributeArray{
 			&dynamodb.TableAttributeArgs{
+				Name: pulumi.String("Id"),
+				Type: pulumi.String("S"),
+			},
+			&dynamodb.TableAttributeArgs{
 				Name: pulumi.String("ConnectionId"),
 				Type: pulumi.String("S"),
 			},
 		},
+
 		BillingMode:  pulumi.String("PAY_PER_REQUEST"),
-		HashKey:      pulumi.String("ConnectionId"),
+		HashKey:      pulumi.String("Id"),
+		RangeKey:     pulumi.String("ConnectionId"),
 		Ttl: &dynamodb.TableTtlArgs{
 			AttributeName: pulumi.String("TimeToExist"),
 			Enabled:       pulumi.Bool(true),

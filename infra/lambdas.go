@@ -41,9 +41,17 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 				"Effect": "Allow",
 				"Action": [
 					"dynamodb:PutItem",
-					"dynamodb:DeleteItem"
+					"dynamodb:DeleteItem",
+					"dynamodb:Query"
 				],
 				"Resource": "arn:aws:dynamodb:eu-west-1:068310699258:table/chatshit-*"
+			},
+			{
+				"Effect": "Allow",
+				"Action": [
+					"execute-api:*"
+				],
+				"Resource": "*"
 			}]
 		}`),
 	})
@@ -77,10 +85,10 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 		return nil, nil, nil, err
 	}
 
-	sendMessage, err := lambda.NewFunction(ctx, "chatshit-sendMessage", &lambda.FunctionArgs{
+	onMessage, err := lambda.NewFunction(ctx, "chatshit-onMessage", &lambda.FunctionArgs{
 		Runtime: lambda.RuntimeGo1dx,
 		Code: pulumi.NewAssetArchive(map[string]interface{}{
-			".": pulumi.NewFileArchive("./functions/sendMessage"),
+			".": pulumi.NewFileArchive("./functions/onMessage"),
 		}),
 		Handler: pulumi.String("handler"),
 		Role:    role.Arn,
@@ -89,5 +97,5 @@ func createLambdas(ctx *pulumi.Context) (*lambda.Function, *lambda.Function, *la
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	return onConnect, onDisconnect, sendMessage, nil
+	return onConnect, onDisconnect, onMessage, nil
 }

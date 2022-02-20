@@ -6,7 +6,7 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
-		onConnect, onDisconnect, sendMessage, err := createLambdas(ctx)
+		onConnect, onDisconnect, onMessage, err := createLambdas(ctx)
 		if err != nil {
 			return err
 		}
@@ -16,7 +16,7 @@ func main() {
 			return err
 		}
 
-		gateway, err := createApiGateway(ctx, onConnect, onDisconnect, sendMessage, cert)
+		gateway, err := createApiGateway(ctx, onConnect, onDisconnect, onMessage, cert)
 		if err != nil {
 			return err
 		}

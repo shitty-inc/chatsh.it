@@ -9,7 +9,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func createApiGateway(ctx *pulumi.Context, onConnect *lambda.Function, onDisconnect *lambda.Function, sendMessage *lambda.Function, cert *acm.CertificateValidation) (*apigatewayv2.Api, error) {
+func createApiGateway(ctx *pulumi.Context, onConnect *lambda.Function, onDisconnect *lambda.Function, onMessage *lambda.Function, cert *acm.CertificateValidation) (*apigatewayv2.Api, error) {
 	api, err := apigatewayv2.NewApi(ctx, "api", &apigatewayv2.ApiArgs{
 		Name:                     pulumi.String("chatshit"),
 		ProtocolType:             pulumi.String("WEBSOCKET"),
@@ -75,28 +75,28 @@ func createApiGateway(ctx *pulumi.Context, onConnect *lambda.Function, onDisconn
 		return nil, err
 	}
 
-	_, err = apigatewayv2.NewIntegration(ctx, "sendmessage-integration", &apigatewayv2.IntegrationArgs{
+	_, err = apigatewayv2.NewIntegration(ctx, "onmessage-integration", &apigatewayv2.IntegrationArgs{
 		ApiId:                   api.ID(),
 		IntegrationType:         pulumi.String("AWS"),
 		ContentHandlingStrategy: pulumi.String("CONVERT_TO_TEXT"),
 		IntegrationMethod:       pulumi.String("POST"),
-		IntegrationUri:          sendMessage.InvokeArn,
+		IntegrationUri:          onMessage.InvokeArn,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = apigatewayv2.NewRoute(ctx, "sendmessage-route", &apigatewayv2.RouteArgs{
+	_, err = apigatewayv2.NewRoute(ctx, "onmessage-route", &apigatewayv2.RouteArgs{
 		ApiId:         api.ID(),
-		RouteKey:      pulumi.String("sendmessage"),
+		RouteKey:      pulumi.String(fmt.Sprintf("%v%v", "$", "default")),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = lambda.NewPermission(ctx, "sendmessage-permission", &lambda.PermissionArgs{
+	_, err = lambda.NewPermission(ctx, "onmessage-permission", &lambda.PermissionArgs{
 		Action:    pulumi.String("lambda:InvokeFunction"),
-		Function:  sendMessage.Name,
+		Function:  onMessage.Name,
 		Principal: pulumi.String("apigateway.amazonaws.com"),
 	})
 	if err != nil {
