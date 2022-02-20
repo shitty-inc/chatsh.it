@@ -34,7 +34,8 @@ function Link(props: LinkProps) {
   return (
     <div className="row">
       <div className="col-6 offset-md-3">
-        <div className="input-group">
+        <p className="text-center">Copy this shit</p>
+        <div className="input-group input-group-sm">
           <input
             readOnly={ true }
             type="text"
@@ -42,15 +43,13 @@ function Link(props: LinkProps) {
             className="form-control"
             value={ `${window.location.origin}/#/${props.id}` }
           />
-          <span className="input-group-btn">
-            <button
-              className="btn btn-default"
-              type="button"
-              ref={ copyRef }
-            >
-              Copy
-            </button>
-          </span>
+          <button
+            className="btn btn-outline-secondary"
+            type="button"
+            ref={ copyRef }
+          >
+            Copy
+          </button>
         </div>
       </div>
     </div>

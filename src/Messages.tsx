@@ -7,7 +7,7 @@ interface MessagesProps {
 function Messages(props: MessagesProps) {
   const { messages } = props;
 
-  if(!messages) {
+  if(messages.length === 0) {
     return null;
   }
 
@@ -19,7 +19,7 @@ function Messages(props: MessagesProps) {
           <div className="chat card">
             <div className="card-body height3">
               <ul className="chat-list">
-                { messages.map((message: Message, index: number) => {
+                { messages.slice(-5).map((message: Message, index: number) => {
                   return(<li className={ message.direction } key={ index }>
                     <div className="chat-body">
                       <div className="chat-message">

@@ -16,16 +16,15 @@ function Messages(props: MessagesProps) {
     <div className="row">
       <div className="col"></div>
       <div className="col-5">
-        <form className="form-inline" onSubmit={ handleSubmit }>
-          <div className="form-group">
+        <form className="form" onSubmit={ handleSubmit }>
+          <div className="input-group input-group-sm mb-3">
             <textarea
               className="form-control outgoing"
               value = { outgoingText }
               onChange={ e => setOutgoingtext(e.target.value) }>
             </textarea>
-            <button type="submit" className="btn btn-outline-secondary submit">Send</button>
+            <button className="btn btn-outline-secondary" type="submit" id="button-addon2">Send</button>
           </div>
-
         </form>
       </div>
       <div className="col"></div>

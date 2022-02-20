@@ -21,7 +21,7 @@ export interface Message {
 
 async function encrypt(data: string): Promise<string> {
   const buffer = new Buffer(data);
-  const encryptedData = await wasm.EncryptFile('signal', buffer, buffer.length, secret);
+  const encryptedData = await wasm.Encrypt(buffer, buffer.length, secret);
 
   return encryptedData;
 }
@@ -113,7 +113,7 @@ function App() {
         case 'message':
           setMessage({
             direction: 'in',
-            timestamp: new Date().toISOString(),
+            timestamp: new Date().toLocaleString("en-us", { hour: '2-digit', minute: '2-digit' }),
             text: message.payload.message
           })
           break;
@@ -163,18 +163,22 @@ function App() {
     event.preventDefault();
 
     if(theirID) {
-      websocket.send(JSON.stringify({
-        action: 'send',
-        payload: {
-          id: theirID,
-          message: outgoingText
-        }
-      }));
+      encrypt(outgoingText).then(encrypted => {
+        websocket.send(JSON.stringify({
+          action: 'send',
+          payload: {
+            id: theirID,
+            message: encrypted
+          }
+        }));
 
-      setMessage({
-        direction: 'out',
-        timestamp: new Date().toISOString(),
-        text: outgoingText
+        setMessage({
+          direction: 'out',
+          timestamp: new Date().toLocaleString("en-us", { hour: '2-digit', minute: '2-digit' }),
+          text: outgoingText
+        });
+
+        setOutgoingtext("");
       });
     } else {
       console.log('Connection not ready');
@@ -190,7 +194,7 @@ function App() {
               <h1 className="h1"><a href="/">chat<span>sh.it</span></a></h1>
             </div>
           </div>
-          <Link id={ myID } display={ state === "registered" } />
+          <Link id={ myID } display={ state === "registered" && initiator } />
           <Messages messages={ messages } />
           <Input outgoingText={ outgoingText } setOutgoingtext={ setOutgoingtext } handleSubmit={ handleSubmit } display={ state === "exchanged" } />
         </div>

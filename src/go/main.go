@@ -17,12 +17,12 @@ func GenerateRandomString(this js.Value, args []js.Value) (interface{}, error) {
 	return sendshit.GenerateRandomString(args[0].Int())
 }
 
-func EncryptFile(this js.Value, args []js.Value) (interface{}, error) {
-	size := args[2].Int()
+func Encrypt(this js.Value, args []js.Value) (interface{}, error) {
+	size := args[1].Int()
 	image := make([]byte, size)
-	js.CopyBytesToGo(image, args[1])
+	js.CopyBytesToGo(image, args[0])
 
-	return sendshit.EncryptFile(args[0].String(), image, args[3].String())
+	return sendshit.EncryptFile("signal", image, args[2].String())
 }
 
 func UploadFile(this js.Value, args []js.Value) (interface{}, error) {
@@ -66,7 +66,7 @@ func main() {
 	c := make(chan struct{}, 0)
 
 	gobridge.RegisterCallback("GenerateRandomString", GenerateRandomString)
-	gobridge.RegisterCallback("EncryptFile", EncryptFile)
+	gobridge.RegisterCallback("Encrypt", Encrypt)
 	gobridge.RegisterCallback("UploadFile", UploadFile)
 	gobridge.RegisterCallback("GenerateKey", GenerateKey)
 	gobridge.RegisterCallback("ComputeSecret", ComputeSecret)
