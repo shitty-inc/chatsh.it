@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Websocket, WebsocketBuilder, WebsocketEvents } from 'websocket-ts';
-import Peer from 'simple-peer';
 import wasm from './go/main.go'
 import Link from './Link';
 import Messages from './Messages';
@@ -9,7 +8,6 @@ import './App.css';
 
 let theirID: string;
 let secret: string;
-let peer: Peer.Instance;
 let initiator = !!!window.location.hash
 let websocket: Websocket;
 
@@ -23,31 +21,14 @@ async function encrypt(data: string): Promise<string> {
   const buffer = new Buffer(data);
   const encryptedData = await wasm.Encrypt(buffer, buffer.length, secret);
 
-  return encryptedData;
+  return Buffer.from(encryptedData).toString('hex');
 }
 
-async function createPeer() {
-  peer = new Peer({
-    initiator: initiator,
-    trickle: false
-  });
+async function decrypt(data: string): Promise<string> {
+  const buffer = Buffer.from(data, 'hex');
+  const decryptedData = await wasm.Decrypt(buffer, buffer.length, secret);
 
-  peer.on('error', err => console.log('peer error', err))
-
-  peer.on('signal', data => {
-    encrypt(JSON.stringify(data));
-    //setMessages((prevMessages: string[]) => [...prevMessages, "Got signal data"])
-  })
-
-  peer.on('connect', async () => {
-    console.log('WebRTC connected');
-  })
-
-  peer.on('data', async (data) => {
-    const string = new TextDecoder("utf-8").decode(data);
-
-    console.log('WebRTC data', string);
-  })
+  return Buffer.from(decryptedData).toString();
 }
 
 function App() {
@@ -63,7 +44,7 @@ function App() {
 
   async function generateSecret(key: string) {
     secret = await wasm.ComputeSecret(key);
-    console.log('Secret generated', secret)
+    console.log('Shared secret generated')
   }
 
   useEffect(() => {
@@ -108,14 +89,15 @@ function App() {
           break;
         case 'switch':
           console.log('Attempting to switch to WebRTC')
-          peer.signal(message.payload);
           break;
         case 'message':
-          setMessage({
-            direction: 'in',
-            timestamp: new Date().toLocaleString("en-us", { hour: '2-digit', minute: '2-digit' }),
-            text: message.payload.message
-          })
+          decrypt(message.payload.message).then(decrypted => {
+            setMessage({
+              direction: 'in',
+              timestamp: new Date().toLocaleString("en-us", { hour: '2-digit', minute: '2-digit' }),
+              text: decrypted
+            })
+          });
           break;
         default:
           console.log('Unknown message action', message)

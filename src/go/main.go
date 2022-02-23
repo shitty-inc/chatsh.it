@@ -2,11 +2,12 @@ package main
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"encoding/hex"
 	"io"
 	"syscall/js"
 
 	"github.com/happybeing/webpack-golang-wasm-async-loader/gobridge"
+	"github.com/keybase/go-triplesec"
 	"github.com/shitty-inc/sendshit-go"
 	"golang.org/x/crypto/curve25519"
 )
@@ -18,21 +19,52 @@ func GenerateRandomString(this js.Value, args []js.Value) (interface{}, error) {
 }
 
 func Encrypt(this js.Value, args []js.Value) (interface{}, error) {
-	size := args[1].Int()
-	image := make([]byte, size)
-	js.CopyBytesToGo(image, args[0])
+	cipher, err := triplesec.NewCipher([]byte(args[2].String()), nil, 3)
 
-	return sendshit.EncryptFile("signal", image, args[2].String())
+	if err != nil {
+		return nil, err
+	}
+
+	size := args[1].Int()
+	bytes := make([]byte, size)
+
+	js.CopyBytesToGo(bytes, args[0])
+
+	encrypted, err := cipher.Encrypt(bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	data := js.Global().Get("Uint8Array").New(len(encrypted))
+	js.CopyBytesToJS(data, encrypted)
+
+	return js.ValueOf(data), nil
 }
 
-func UploadFile(this js.Value, args []js.Value) (interface{}, error) {
-	value, err := sendshit.UploadFile(args[0].String())
+func Decrypt(this js.Value, args []js.Value) (interface{}, error) {
+	cipher, err := triplesec.NewCipher([]byte(args[2].String()), nil, 3)
 
-	return js.ValueOf(value), err
+	if err != nil {
+		return nil, err
+	}
+
+	size := args[1].Int()
+	bytes := make([]byte, size)
+
+	js.CopyBytesToGo(bytes, args[0])
+
+	decrypted, err := cipher.Decrypt(bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	data := js.Global().Get("Uint8Array").New(len(decrypted))
+	js.CopyBytesToJS(data, decrypted)
+
+	return js.ValueOf(data), nil
 }
 
 func GenerateKey(this js.Value, args []js.Value) (interface{}, error) {
-
 	var privKey [32]byte
 
 	_, err := io.ReadFull(rand.Reader, privKey[:])
@@ -47,19 +79,19 @@ func GenerateKey(this js.Value, args []js.Value) (interface{}, error) {
 
 	PrivateKey = privKey
 
-	return js.ValueOf(base64.StdEncoding.EncodeToString(pubKey[:])), err
+	return js.ValueOf(hex.EncodeToString(pubKey[:])), err
 }
 
 func ComputeSecret(this js.Value, args []js.Value) (interface{}, error) {
 
 	publicString := args[0].String()
-	publicBytes, _ := base64.StdEncoding.DecodeString(publicString)
+	publicBytes, _ := hex.DecodeString(publicString)
 
 	var secret [32]byte
 
 	curve25519.ScalarMult(&secret, &PrivateKey, (*[32]byte)(publicBytes) )
 
-	return js.ValueOf(base64.StdEncoding.EncodeToString(secret[:])), nil
+	return js.ValueOf(hex.EncodeToString(secret[:])), nil
 }
 
 func main() {
@@ -67,7 +99,7 @@ func main() {
 
 	gobridge.RegisterCallback("GenerateRandomString", GenerateRandomString)
 	gobridge.RegisterCallback("Encrypt", Encrypt)
-	gobridge.RegisterCallback("UploadFile", UploadFile)
+	gobridge.RegisterCallback("Decrypt", Decrypt)
 	gobridge.RegisterCallback("GenerateKey", GenerateKey)
 	gobridge.RegisterCallback("ComputeSecret", ComputeSecret)
 
