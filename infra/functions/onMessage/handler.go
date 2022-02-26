@@ -27,7 +27,7 @@ type DynamoItem struct {
 }
 
 type Message struct {
-	Action    string `json:"action"`
+	Action string `json:"action"`
 	Payload map[string]interface{} `json:"payload"`
 }
 
