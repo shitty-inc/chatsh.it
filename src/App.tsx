@@ -34,7 +34,6 @@ function App() {
   const [theirID, setTheirID] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
-  const [state, setState] = useState("pending");
   const [message, setMessage] = useState<Message>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [outgoingText, setOutgoingtext] = useState("");
@@ -45,30 +44,28 @@ function App() {
     console.log('Shared secret generated', secret);
   }
 
-  const processMessage = (i: Websocket, ev: any) => {
+  const processMessage = (i: Websocket, ev: MessageEvent<any>) => {
     const message = JSON.parse(ev.data);
 
     switch (message.action) {
       case 'registered':
         console.log('Registered ConnectionId with signaling server', message.payload.ConnectionId)
-        setState('registered');
 
-        if(!initiator && theirID === "") {
+        if(!initiator) {
           const urlID = window.location.hash.substring(2);
           setTheirID(urlID);
           console.log('Got their ID from URL', urlID);
         }
         break;
       case 'exchange':
-        if(initiator && theirID === "") {
+        if(initiator) {
           console.log('Got their ID', message.payload.id);
           setTheirID(message.payload.id);
+          window.location.hash = `/${message.payload.id}`;
         }
 
         console.log('Got their public key', message.payload.publicKey);
         generateSecret(message.payload.publicKey);
-
-        setState('exchanged');
         break;
       case 'switch':
         console.log('Attempting to switch to WebRTC');
@@ -180,9 +177,14 @@ function App() {
               <h1 className="h1"><a href="/">chat<span>sh.it</span></a></h1>
             </div>
           </div>
-          <Link id={ myID } display={ state === "registered" && initiator } />
+          <Link id={ myID } display={ secretKey === "" && initiator } />
           <Messages messages={ messages } />
-          <Input outgoingText={ outgoingText } setOutgoingtext={ setOutgoingtext } handleSubmit={ handleSubmit } display={ state === "exchanged" } />
+          <Input
+            outgoingText={ outgoingText }
+            setOutgoingtext={ setOutgoingtext }
+            handleSubmit={ handleSubmit }
+            display={ secretKey !== "" }
+          />
         </div>
       </div>
     </div>
