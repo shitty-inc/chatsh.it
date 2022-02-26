@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 
@@ -30,11 +31,11 @@ type Message struct {
 	Payload map[string]interface{} `json:"payload"`
 }
 
-// Register a new connectionID with the given ID
-func register(connectionID string, ID string) error {
+// Register a new ConnectionId with the given ID
+func register(ConnectionId string, Id string) error {
 	item, err := dynamodbattribute.MarshalMap(DynamoItem {
-		Id: ID,
-    ConnectionId: connectionID,
+		Id: Id,
+    ConnectionId: ConnectionId,
 	})
 	if err != nil {
 		log.Fatalf("Error marshalling new item: %s", err)
@@ -51,8 +52,8 @@ func register(connectionID string, ID string) error {
 	json, err := json.Marshal(&Message{
 		Action: "registered",
 		Payload: map[string]interface{}{
-			"ID": ID,
-			"connectionID": connectionID,
+			"Id": Id,
+			"ConnectionId": ConnectionId,
 		},
 	})
 	if err != nil {
@@ -60,7 +61,7 @@ func register(connectionID string, ID string) error {
 	}
 
 	_, err = api.PostToConnection(&apigatewaymanagementapi.PostToConnectionInput{
-		ConnectionId: aws.String(connectionID),
+		ConnectionId: aws.String(ConnectionId),
 		Data:         []byte(json),
 	})
 	if err != nil {
@@ -71,13 +72,13 @@ func register(connectionID string, ID string) error {
 }
 
 // Send a message to all connections from an ID
-func send(ID string, message Message) error {
+func send(Id string, message Message) error {
 	input := &dynamodb.QueryInput{
 		TableName: aws.String("chatshit-ee079db"),
 		KeyConditionExpression: aws.String("Id = :id"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":id": {
-				S: aws.String(ID),
+				S: aws.String(Id),
 			},
 		},
 	}
@@ -106,7 +107,20 @@ func send(ID string, message Message) error {
 			Data:         []byte(json),
 		})
 		if err != nil {
-			log.Fatalf("Error calling PostToConnection: %s", err)
+			goneError := &apigatewaymanagementapi.GoneException{}
+			if errors.As(err, &goneError) {
+				log.Printf("Connection %s not found, removing from database", item.ConnectionId)
+				dynamo.DeleteItem(&dynamodb.DeleteItemInput{
+					TableName: aws.String("chatshit-ee079db"),
+					Key: map[string]*dynamodb.AttributeValue{
+						"Id": {
+							S: aws.String(item.Id),
+						},
+					},
+				})
+			} else {
+				log.Fatalf("Error calling PostToConnection: %s", err)
+			}
 		}
 	}
 

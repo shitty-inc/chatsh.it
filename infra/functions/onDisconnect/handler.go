@@ -15,10 +15,6 @@ var (
 	dynamo dynamodbiface.DynamoDBAPI
 )
 
-type Item struct {
-	ConnectionId string
-}
-
 func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayProxyResponse, error) {
 	input := &dynamodb.DeleteItemInput{
     TableName: aws.String("chatshit-9388b75"),
