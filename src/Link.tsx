@@ -2,7 +2,7 @@ import { useEffect, createRef } from 'react';
 import Clipboard from 'clipboard';
 
 interface LinkProps {
-  id: string
+  id: string | undefined;
   display: boolean;
 }
 
@@ -10,8 +10,10 @@ function Link(props: LinkProps) {
   const downloadRef: React.RefObject<HTMLInputElement> = createRef();
   const copyRef: React.RefObject<HTMLButtonElement> = createRef();
 
+  const { id, display } = props;
+
   useEffect(() => {
-    if(props.display) {
+    if(display && id) {
       const downloadLink: HTMLInputElement = downloadRef.current as HTMLInputElement;
       const copyButton: HTMLButtonElement = copyRef.current as HTMLButtonElement;
 
@@ -27,7 +29,7 @@ function Link(props: LinkProps) {
     }
   });
 
-  if(!props.display) {
+  if(!display || !id) {
     return null;
   }
 
@@ -41,7 +43,7 @@ function Link(props: LinkProps) {
             type="text"
             ref={ downloadRef }
             className="form-control"
-            value={ `${window.location.origin}/#/${props.id}` }
+            value={ `${window.location.origin}/#/${id}` }
           />
           <button
             className="btn btn-outline-secondary"

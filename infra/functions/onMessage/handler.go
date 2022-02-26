@@ -145,7 +145,14 @@ func handler(request events.APIGatewayWebsocketProxyRequest) (events.APIGatewayP
 				"publicKey": message.Payload["publicKey"].(string),
 			},
 		})
-	case "send":
+	case "switch":
+		send(message.Payload["id"].(string), Message{
+			Action: "switch",
+			Payload: map[string]interface{}{
+				"data": message.Payload["data"].(string),
+			},
+		})
+	case "message":
 		send(message.Payload["id"].(string), Message{
 			Action: "message",
 			Payload: map[string]interface{}{
