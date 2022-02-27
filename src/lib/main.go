@@ -64,7 +64,7 @@ func Decrypt(this js.Value, args []js.Value) (interface{}, error) {
 	return js.ValueOf(data), nil
 }
 
-func GenerateKey(this js.Value, args []js.Value) (interface{}, error) {
+func GenerateKeyPair(this js.Value, args []js.Value) (interface{}, error) {
 	var privKey [32]byte
 
 	_, err := io.ReadFull(rand.Reader, privKey[:])
@@ -83,7 +83,6 @@ func GenerateKey(this js.Value, args []js.Value) (interface{}, error) {
 }
 
 func ComputeSecret(this js.Value, args []js.Value) (interface{}, error) {
-
 	publicString := args[0].String()
 	publicBytes, _ := hex.DecodeString(publicString)
 
@@ -100,7 +99,7 @@ func main() {
 	gobridge.RegisterCallback("GenerateRandomString", GenerateRandomString)
 	gobridge.RegisterCallback("Encrypt", Encrypt)
 	gobridge.RegisterCallback("Decrypt", Decrypt)
-	gobridge.RegisterCallback("GenerateKey", GenerateKey)
+	gobridge.RegisterCallback("GenerateKeyPair", GenerateKeyPair)
 	gobridge.RegisterCallback("ComputeSecret", ComputeSecret)
 
 	<-c

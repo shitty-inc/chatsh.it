@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Websocket, WebsocketBuilder, WebsocketEvents, ConstantBackoff, LRUBuffer } from 'websocket-ts';
 import SimplePeer, { SignalData } from 'simple-peer';
-import wasm from './go/main.go'
+import { encrypt, decrypt, ComputeSecret, GenerateRandomString, GenerateKeyPair } from './lib/crypto';
 import Link from './Link';
 import Messages from './Messages';
 import Input from './Input';
@@ -18,30 +18,6 @@ export interface Message {
   text: string;
 }
 
-async function encrypt(data: string, secret: string): Promise<string> {
-  const buffer = new Buffer(data);
-  const encryptedData = await wasm.Encrypt(buffer, buffer.length, secret);
-
-  return Buffer.from(encryptedData).toString('hex');
-}
-
-async function decrypt(data: string, secret: string): Promise<string> {
-  const buffer = Buffer.from(data, 'hex');
-  const decryptedData = await wasm.Decrypt(buffer, buffer.length, secret);
-
-  return Buffer.from(decryptedData).toString();
-}
-
-function getHashData(): { theirId: string, myId: string } {
-  const hash = window.location.hash;
-  const keys = hash.substr(1).split('/');
-
-  return {
-    theirId: keys[1],
-    myId: keys[2]
-  }
-}
-
 function App() {
   const [myID, setMyID] = useState<string>();
   const [theirID, setTheirID] = useState<string>();
@@ -53,8 +29,26 @@ function App() {
   const [signalData, setSignalData] = useState<SignalData>();
   const [peerConnected, setPeerConnected] = useState<boolean>(false);
 
+  function getHashData(): { theirId: string, myId: string } {
+    const hash = window.location.hash;
+    const keys = hash.substr(1).split('/');
+
+    return {
+      theirId: keys[1],
+      myId: keys[2]
+    }
+  }
+
+  function handleSubmit(event: React.SyntheticEvent) {
+    event.preventDefault();
+
+    if(theirID && secretKey && outgoingText) {
+      sendMessage(outgoingText, secretKey);
+    }
+  }
+
   async function generateSecret(key: string) {
-    const secret = await wasm.ComputeSecret(key);
+    const secret = await ComputeSecret(key);
 
     setSecretKey(secret);
     setStatus('Connected via server');
@@ -189,13 +183,13 @@ function App() {
         id = myUrlId;
         console.log('Got my ID from URL', id);
       } else {
-        id = await wasm.GenerateRandomString(24)
+        id = await GenerateRandomString(24)
         console.log('Generated my ID', id);
       }
 
       setMyID(id);
 
-      const publicKey = await wasm.GenerateKey();
+      const publicKey = await GenerateKeyPair();
 
       setPublicKey(publicKey);
       console.log('Generated my public key', publicKey);
@@ -222,35 +216,25 @@ function App() {
       websocket.addEventListener(WebsocketEvents.retry, register);
       websocket.addEventListener(WebsocketEvents.message, (ws: Websocket, ev: MessageEvent<any>) => processMessageRef.current(ev.data));
 
-      peer = new SimplePeer({
-        initiator,
-        trickle: false
-      }).on('signal', data => {
-        console.log('Got WebRTC signal data');
-        setSignalData(data);
-      }).on('error', (err) => {
-        console.log('WebRTC error', err);
-      }).on('connect', () => {
-        console.log('WebRTC peer connected')
-        setStatus('Connected directly with WebRTC');
-        setPeerConnected(true);
-      }).on('close', () => {
-        setPeerConnected(false);
-      }).on('data', (data: any) => {
-        processMessageRef.current(data);
-      })
+      peer = new SimplePeer({ initiator, trickle: false })
+        .on('signal', data => {
+          console.log('Got WebRTC signal data');
+          setSignalData(data);
+        })
+        .on('error', (err) => {
+          console.log('WebRTC error', err);
+        })
+        .on('connect', () => {
+          console.log('WebRTC peer connected')
+          setStatus('Connected directly with WebRTC');
+          setPeerConnected(true);
+        })
+        .on('close', () => setPeerConnected(false))
+        .on('data', (data: any) => processMessageRef.current(data));
     }
 
     init();
   }, []);
-
-  const handleSubmit = (event: React.SyntheticEvent) => {
-    event.preventDefault();
-
-    if(theirID && secretKey && outgoingText) {
-      sendMessage(outgoingText, secretKey);
-    }
-  }
 
   return (
     <div className="body">
