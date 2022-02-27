@@ -7,7 +7,7 @@ interface MessagesProps {
 function Messages(props: MessagesProps) {
   const { messages } = props;
 
-  if(messages.length === 0) {
+  if (messages.length === 0) {
     return null;
   }
 
@@ -19,16 +19,18 @@ function Messages(props: MessagesProps) {
           <div className="chat card">
             <div className="card-body height3">
               <ul className="chat-list">
-                { messages.slice(-5).map((message: Message, index: number) => {
-                  return(<li className={ message.direction } key={ index }>
-                    <div className="chat-body">
-                      <div className="chat-message">
-                        <h5>{ message.timestamp }</h5>
-                        <p>{ message.text }</p>
+                {messages.slice(-5).map((message: Message, index: number) => {
+                  return (
+                    <li className={message.direction} key={index}>
+                      <div className="chat-body">
+                        <div className="chat-message">
+                          <h5>{message.timestamp}</h5>
+                          <p>{message.text}</p>
+                        </div>
                       </div>
-                    </div>
-                  </li>);
-                }) }
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>

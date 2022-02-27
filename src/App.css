@@ -5,7 +5,7 @@
 
 .chat-list {
   padding: 0;
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 .chat-list li {
@@ -37,7 +37,7 @@
 }
 
 .chat-list .chat-message:before {
-  content: "";
+  content: '';
   position: absolute;
   top: 15px;
   width: 0;
@@ -48,7 +48,7 @@
   margin: 0 0 5px 0;
   font-weight: 600;
   line-height: 100%;
-  font-size: .9rem;
+  font-size: 0.9rem;
 }
 
 .chat-list .chat-message p {
@@ -99,7 +99,7 @@
   background: #17202b;
   border: 0;
   font-size: 1rem;
-  padding: .65rem 1rem;
+  padding: 0.65rem 1rem;
   position: relative;
   font-weight: 600;
   color: #ffffff;

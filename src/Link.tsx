@@ -13,15 +13,13 @@ function Link(props: LinkProps) {
   const { id, display } = props;
 
   useEffect(() => {
-    if(display && id) {
+    if (display && id) {
       const downloadLink: HTMLInputElement = downloadRef.current as HTMLInputElement;
       const copyButton: HTMLButtonElement = copyRef.current as HTMLButtonElement;
 
-      const clipboard = new Clipboard(
-        copyButton, {
-          target: () => downloadLink
-        }
-      )
+      const clipboard = new Clipboard(copyButton, {
+        target: () => downloadLink,
+      });
 
       downloadLink.select();
 
@@ -29,7 +27,7 @@ function Link(props: LinkProps) {
     }
   });
 
-  if(!display || !id) {
+  if (!display || !id) {
     return null;
   }
 
@@ -39,17 +37,13 @@ function Link(props: LinkProps) {
         <p className="text-center">Copy this shit</p>
         <div className="input-group input-group-sm">
           <input
-            readOnly={ true }
+            readOnly={true}
             type="text"
-            ref={ downloadRef }
+            ref={downloadRef}
             className="form-control"
-            value={ `${window.location.origin}/#/${id}` }
+            value={`${window.location.origin}/#/${id}`}
           />
-          <button
-            className="btn btn-outline-secondary"
-            type="button"
-            ref={ copyRef }
-          >
+          <button className="btn btn-outline-secondary" type="button" ref={copyRef}>
             Copy
           </button>
         </div>

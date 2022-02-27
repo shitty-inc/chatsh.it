@@ -1,4 +1,4 @@
-import wasm from './main.go'
+import wasm from './main.go';
 
 export async function encrypt(data: string, secret: string): Promise<string> {
   const buffer = new Buffer(data);

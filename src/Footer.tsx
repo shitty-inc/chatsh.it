@@ -1,5 +1,5 @@
 interface FooterProps {
-  status: string
+  status: string;
 }
 
 function Footer(props: FooterProps) {
@@ -8,7 +8,7 @@ function Footer(props: FooterProps) {
   return (
     <footer id="footer">
       <div className="container text-center">
-        <p>{ status }</p>
+        <p>{status}</p>
       </div>
     </footer>
   );

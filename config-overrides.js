@@ -9,22 +9,22 @@ module.exports = function override(config) {
       os: false,
       path: false,
       stream: false,
-      util: false
+      util: false,
     },
-    extensions: [ '.go', '.tsx', '.ts', '.js' ]
+    extensions: ['.go', '.tsx', '.ts', '.js'],
   };
 
-  config.module.rules = config.module.rules.map(rule => {
+  config.module.rules = config.module.rules.map((rule) => {
     if (rule.oneOf instanceof Array) {
       return {
         ...rule,
         oneOf: [
           {
             test: /\.go/,
-            use: ['@fiedka/golang-wasm-async-loader']
+            use: ['@fiedka/golang-wasm-async-loader'],
           },
-          ...rule.oneOf
-        ]
+          ...rule.oneOf,
+        ],
       };
     }
 
@@ -34,9 +34,9 @@ module.exports = function override(config) {
   config.plugins = (config.plugins || []).concat([
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
-      process: 'process/browser'
-    })
+      process: 'process/browser',
+    }),
   ]);
 
-  return config
-}
+  return config;
+};

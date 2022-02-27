@@ -1,14 +1,26 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Websocket, WebsocketBuilder, WebsocketEvents, ConstantBackoff, LRUBuffer } from 'websocket-ts';
+import {
+  Websocket,
+  WebsocketBuilder,
+  WebsocketEvents,
+  ConstantBackoff,
+  LRUBuffer,
+} from 'websocket-ts';
 import SimplePeer, { SignalData } from 'simple-peer';
-import { encrypt, decrypt, ComputeSecret, GenerateRandomString, GenerateKeyPair } from './lib/crypto';
+import {
+  encrypt,
+  decrypt,
+  ComputeSecret,
+  GenerateRandomString,
+  GenerateKeyPair,
+} from './lib/crypto';
 import Link from './Link';
 import Messages from './Messages';
 import Input from './Input';
 import Footer from './Footer';
 import './App.css';
 
-let initiator = !!!window.location.hash
+let initiator = !!!window.location.hash;
 let websocket: Websocket;
 let peer: SimplePeer.Instance;
 
@@ -29,20 +41,20 @@ function App() {
   const [signalData, setSignalData] = useState<SignalData>();
   const [peerConnected, setPeerConnected] = useState<boolean>(false);
 
-  function getHashData(): { theirId: string, myId: string } {
+  function getHashData(): { theirId: string; myId: string } {
     const hash = window.location.hash;
     const keys = hash.substr(1).split('/');
 
     return {
       theirId: keys[1],
-      myId: keys[2]
-    }
+      myId: keys[2],
+    };
   }
 
   function handleSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
 
-    if(theirID && secretKey && outgoingText) {
+    if (theirID && secretKey && outgoingText) {
       sendMessage(outgoingText, secretKey);
     }
   }
@@ -58,11 +70,17 @@ function App() {
   async function receiveMessage(data: string, secretKey: string) {
     const decrypted = await decrypt(data, secretKey);
 
-    setMessages((prevMessages: Message[]) => [...prevMessages, {
-      direction: 'in',
-      timestamp: new Date().toLocaleString("en-us", { hour: '2-digit', minute: '2-digit' }),
-      text: decrypted
-    }]);
+    setMessages((prevMessages: Message[]) => [
+      ...prevMessages,
+      {
+        direction: 'in',
+        timestamp: new Date().toLocaleString('en-us', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        text: decrypted,
+      },
+    ]);
   }
 
   async function sendMessage(data: string, secretKey: string) {
@@ -71,11 +89,11 @@ function App() {
       action: 'message',
       payload: {
         id: theirID,
-        message: encrypted
-      }
+        message: encrypted,
+      },
     });
 
-    if(peerConnected) {
+    if (peerConnected) {
       try {
         peer.send(msg);
       } catch (error) {
@@ -86,44 +104,56 @@ function App() {
       websocket.send(msg);
     }
 
-    setMessages((prevMessages: Message[]) => [...prevMessages, {
-      direction: 'out',
-      timestamp: new Date().toLocaleString("en-us", { hour: '2-digit', minute: '2-digit' }),
-      text: outgoingText
-    }]);
+    setMessages((prevMessages: Message[]) => [
+      ...prevMessages,
+      {
+        direction: 'out',
+        timestamp: new Date().toLocaleString('en-us', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        text: outgoingText,
+      },
+    ]);
 
-    setOutgoingtext("");
+    setOutgoingtext('');
   }
 
   useEffect(() => {
-    if(signalData && secretKey) {
+    if (signalData && secretKey) {
       console.log('Attempting to switch to WebRTC');
-      encrypt(JSON.stringify(signalData), secretKey).then(encrypted => {
-        websocket.send(JSON.stringify({
-          action: 'switch',
-          payload: {
-            id: theirID,
-            data: encrypted
-          }
-        }));
-      }).catch(err => {
-        console.log('Error encrypting signal data', err);
-      });
+      encrypt(JSON.stringify(signalData), secretKey)
+        .then((encrypted) => {
+          websocket.send(
+            JSON.stringify({
+              action: 'switch',
+              payload: {
+                id: theirID,
+                data: encrypted,
+              },
+            })
+          );
+        })
+        .catch((err) => {
+          console.log('Error encrypting signal data', err);
+        });
     }
   }, [signalData, secretKey, theirID]);
 
   useEffect(() => {
-    if(myID && theirID && publicKey) {
+    if (myID && theirID && publicKey) {
       window.location.hash = `/${theirID}/${myID}`;
       console.log(`Sending my publicKey to ${theirID}`);
-      websocket.send(JSON.stringify({
-        action: 'exchange',
-        payload: {
-          myID,
-          theirID,
-          publicKey
-        }
-      }));
+      websocket.send(
+        JSON.stringify({
+          action: 'exchange',
+          payload: {
+            myID,
+            theirID,
+            publicKey,
+          },
+        })
+      );
     }
   }, [myID, theirID, publicKey, secretKey]);
 
@@ -133,15 +163,15 @@ function App() {
 
     switch (message.action) {
       case 'registered':
-        console.log('Registered ConnectionId with signaling server', message.payload.ConnectionId)
+        console.log('Registered ConnectionId with signaling server', message.payload.ConnectionId);
 
-        if(theirUrlID) {
+        if (theirUrlID) {
           setTheirID(theirUrlID);
           console.log('Got their ID from URL', theirUrlID);
         }
         break;
       case 'exchange':
-        if(!theirUrlID) {
+        if (!theirUrlID) {
           console.log('Got their ID', message.payload.id);
           setTheirID(message.payload.id);
         }
@@ -152,13 +182,15 @@ function App() {
       case 'switch':
         console.log('Got request to switch to WebRTC');
 
-        if(secretKey) {
-          decrypt(message.payload.data, secretKey).then(decrypted => {
-            const signalData = JSON.parse(decrypted);
-            peer.signal(signalData);
-          }).catch(err => {
-            console.log('Error decrypting signal data', err);
-          });
+        if (secretKey) {
+          decrypt(message.payload.data, secretKey)
+            .then((decrypted) => {
+              const signalData = JSON.parse(decrypted);
+              peer.signal(signalData);
+            })
+            .catch((err) => {
+              console.log('Error decrypting signal data', err);
+            });
         }
         break;
       case 'message':
@@ -167,23 +199,25 @@ function App() {
         }
         break;
       default:
-        console.log('Unknown message action', message)
+        console.log('Unknown message action', message);
     }
   };
 
   const processMessageRef = useRef(processMessage);
-  useEffect(() => { processMessageRef.current = processMessage; });
+  useEffect(() => {
+    processMessageRef.current = processMessage;
+  });
 
   useEffect(() => {
     async function init() {
       let id: string;
       const myUrlId = getHashData().myId;
 
-      if(myUrlId) {
+      if (myUrlId) {
         id = myUrlId;
         console.log('Got my ID from URL', id);
       } else {
-        id = await GenerateRandomString(24)
+        id = await GenerateRandomString(24);
         console.log('Generated my ID', id);
       }
 
@@ -202,22 +236,26 @@ function App() {
         .build();
 
       const register = () => {
-        console.log('Registering with signaling server')
+        console.log('Registering with signaling server');
 
-        websocket.send(JSON.stringify({
-          action: 'register',
-          payload: {
-            id,
-          }
-        }));
-      }
+        websocket.send(
+          JSON.stringify({
+            action: 'register',
+            payload: {
+              id,
+            },
+          })
+        );
+      };
 
       websocket.addEventListener(WebsocketEvents.open, register);
       websocket.addEventListener(WebsocketEvents.retry, register);
-      websocket.addEventListener(WebsocketEvents.message, (ws: Websocket, ev: MessageEvent<any>) => processMessageRef.current(ev.data));
+      websocket.addEventListener(WebsocketEvents.message, (ws: Websocket, ev: MessageEvent<any>) =>
+        processMessageRef.current(ev.data)
+      );
 
       peer = new SimplePeer({ initiator, trickle: false })
-        .on('signal', data => {
+        .on('signal', (data) => {
           console.log('Got WebRTC signal data');
           setSignalData(data);
         })
@@ -225,7 +263,7 @@ function App() {
           console.log('WebRTC error', err);
         })
         .on('connect', () => {
-          console.log('WebRTC peer connected')
+          console.log('WebRTC peer connected');
           setStatus('Connected directly with WebRTC');
           setPeerConnected(true);
         })
@@ -242,20 +280,24 @@ function App() {
         <div className="container">
           <div className="row logo">
             <div className="col-md-12 text-center">
-              <h1 className="h1"><a href="/">chat<span>sh.it</span></a></h1>
+              <h1 className="h1">
+                <a href="/">
+                  chat<span>sh.it</span>
+                </a>
+              </h1>
             </div>
           </div>
-          <Link id={ myID } display={ !secretKey && initiator } />
-          <Messages messages={ messages } />
+          <Link id={myID} display={!secretKey && initiator} />
+          <Messages messages={messages} />
           <Input
-            outgoingText={ outgoingText }
-            setOutgoingtext={ setOutgoingtext }
-            handleSubmit={ handleSubmit }
-            display={ !!secretKey }
+            outgoingText={outgoingText}
+            setOutgoingtext={setOutgoingtext}
+            handleSubmit={handleSubmit}
+            display={!!secretKey}
           />
         </div>
       </div>
-      <Footer status={ status }/>
+      <Footer status={status} />
     </div>
   );
 }
