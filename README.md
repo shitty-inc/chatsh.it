@@ -6,7 +6,7 @@
 
 ## Description
 
-First we establish a websocket connection to our server and generate you a public key. This is in the URL you can share with your friend. Once they click on the we perform our own ECDH key-exchange using Curve25519 to generate a shared private key to use to encrypt all messages with the [TripleSec](https://github.com/keybase/go-triplesec) library. We then use the websocket connection to attempt to establish a peer to peer connection secured by DTLS using WebRTC.
+First we establish a websocket connection to our server and generate you a public key. This is in the URL you can share with your friend. Once they click on the we perform our own ECDH key-exchange using Curve25519 to generate a shared private key to use to encrypt all messages with the [TripleSec](https://github.com/keybase/go-triplesec) library. We then use the websocket connection as a signaling server to attempt to establish a peer to peer connection secured by DTLS using WebRTC.
 
 ## Disclaimer
 
